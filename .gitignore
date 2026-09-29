@@ -16,4 +16,4 @@ env/
 
 *.sqlite3
 
-*./database/sql
+/database/sql
