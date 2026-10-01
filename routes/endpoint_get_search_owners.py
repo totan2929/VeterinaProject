@@ -1,3 +1,11 @@
+# ============================================================================
+# FILE: routes/endpoint_get_search_owners.py
+# LAYER: 4 - Endpoint Controllers (API Routes / Console Presentation Layer)
+# EQUIVALENT HTTP METHOD: GET /api/owners/search?q={keyword}
+# DESCRIPTION: Performs pattern-matching search (SQL LIKE) across first_name
+#              and last_name columns, returning up to 20 matching records.
+# ============================================================================
+
 import sys
 import os
 
@@ -21,14 +29,17 @@ def search_owners_by_keyword(keyword):
 def run_search_owners():
     clear_screen()
     try:
+        # Step 1: Prompt search term and enforce minimum length
         print("=== BÚSQUEDA DE PROPIETARIOS POR NOMBRE/APELLIDO ===\n")
         keyword = input("Digite nombre o apellido a buscar (mínimo 2 letras): ").strip()
         
         if len(keyword) < 2:
             raise ValueError("El criterio de búsqueda debe tener al menos 2 caracteres.")
-
+        
+        # Step 2: Query database with wildcard matching
         matches = search_owners_by_keyword(keyword)
 
+        # Step 3: Format JSON response
         response = {
             "status": 200,
             "search_keyword": keyword,

@@ -1,4 +1,9 @@
-# utils/functions.py
+# ============================================================================
+# FILE: utils/functions.py
+# LAYER: 3 - Business Logic and Domain Validators
+# PURPOSE: Sanitize, format, and validate user input integrity prior to
+#          interacting with the database layer.
+# ============================================================================
 import os
 import re
 from datetime import datetime

@@ -1,3 +1,11 @@
+# ============================================================================
+# FILE: routes/endpoint_patch_update_status.py
+# LAYER: 4 - Endpoint Controllers (API Routes / Console Presentation Layer)
+# EQUIVALENT HTTP METHOD: PATCH /api/owners/{doc_number}/status
+# DESCRIPTION: Manages logical deletion (soft delete) by toggling owner status
+#              between 'Active' and 'Inactive' without removing relational data.
+# ============================================================================
+
 import sys
 import os
 
@@ -10,10 +18,12 @@ from utils.functions import clear_screen, pause, confirm_action_yn, validate_doc
 def run_patch_status():
     clear_screen()
     try:
+        # Step 1: Prompt and validate owner document
         print("=== GESTIÓN DE ESTADO DE PROPIETARIO (BORRADO LÓGICO) ===\n")
         doc_input = input("Digite el documento del propietario: ")
         doc_number = validate_doc_number(doc_input)
-
+        
+        # Step 2: Validate existing record state
         owner_record = ejecutar_consulta_unica("SELECT owner_id, first_name, last_name, status FROM owners WHERE doc_number = %s", (doc_number,))
         if not owner_record:
             response = {"status": 404, "message": f"No se encontró propietario con documento {doc_number}."}
@@ -23,21 +33,25 @@ def run_patch_status():
         print(f"\nPropietario: {owner_record['first_name']} {owner_record['last_name']}")
         print(f"Estado actual: {owner_record['status']}\n")
 
+        # Step 3: Capture and validate new target status
         new_status = validate_status(input("Digite el nuevo estado (Active / Inactive): "))
 
         if new_status == owner_record["status"]:
             print(json.dumps({"status": 200, "message": "El propietario ya se encuentra en ese estado.", "data": owner_record}, indent=2))
             return
 
+        # Step 4: Require user confirmation
         if not confirm_action_yn(f"¿Confirma cambiar el estado a '{new_status}'?"):
             canceled = {"status": 200, "message": "Operación cancelada.", "data": None}
             print(json.dumps(canceled, indent=2, ensure_ascii=False))
             return
 
+        # Step 5: Update database status column
         sql = "UPDATE owners SET status = %s WHERE doc_number = %s"
         affected_rows = ejecutar_operacion_escritura(sql, (new_status, doc_number))
         updated_owner = ejecutar_consulta_unica("SELECT owner_id, doc_number, first_name, last_name, status FROM owners WHERE doc_number = %s", (doc_number,))
 
+        # Step 6: Output updated record in JSON
         response = {
             "status": 200,
             "message": f"Estado del propietario actualizado a '{new_status}' exitosamente",

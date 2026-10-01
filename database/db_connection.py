@@ -1,13 +1,24 @@
-# database/db_connection.py
-# Data Access Layer (Transactional CRUD operations and connection handling).
+# ============================================================================
+# FILE: database/db_connection.py
+# LAYER: 2 - Persistence and Data Access Layer (DAL)
+# PURPOSE: Centralize MySQL database connection and manage transactional CRUD.
+#
+# SECURITY & ARCHITECTURE HIGHLIGHTS:
+# 1. CWE-798 Avoidance: Credentials loaded via python-dotenv (.env).
+# 2. CWE-209 Avoidance: Internal database errors are masked to avoid leakages.
+# 3. CWE-89 Prevention: Mandatory parameterized queries with %s placeholders.
+# 4. ACID Compliance: Explicit COMMIT and ROLLBACK transaction control.
+# ============================================================================
 
 import os
 import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
 
+# Load environmental variables from the root .env file
 load_dotenv()
 
+# MySQL connection configuration dictionary
 CONFIG_DB = {
     "host": os.getenv("DB_HOST"),
     "port": int(os.getenv("DB_PORT", 3306)),
@@ -18,6 +29,7 @@ CONFIG_DB = {
     "autocommit": False,
 }
 
+# Fail-fast principle: Terminate process if minimal credentials are missing
 if not CONFIG_DB["user"] or not CONFIG_DB["password"]:
     raise EnvironmentError("Database credentials not configured in .env file")
 
